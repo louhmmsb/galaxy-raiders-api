@@ -1,4 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER") // <- REMOVE
 package galaxyraiders.core.physics
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -10,57 +9,63 @@ data class Vector2D(val dx: Double, val dy: Double) {
   }
 
   val magnitude: Double
-    get() = INVALID_DOUBLE
+    get() = Math.sqrt((this.dx * this.dx) + (this.dy * this.dy))
 
   val radiant: Double
-    get() = INVALID_DOUBLE
+    get() = if (this.dy > 0) Math.acos(this.dx / this.magnitude) else -Math.acos(this.dx/this.magnitude)
 
   val degree: Double
-    get() = INVALID_DOUBLE
+    get() {
+      return this.radiant * PI_IN_DEGREES / Math.PI
+    }
 
   val unit: Vector2D
-    get() = INVALID_VECTOR
+    get() = this / this.magnitude
 
   val normal: Vector2D
-    get() = INVALID_VECTOR
+    get() = Vector2D(this.dy, -this.dx) / this.magnitude
 
   operator fun times(scalar: Double): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(this.dx * scalar, this.dy * scalar)
   }
 
   operator fun div(scalar: Double): Vector2D {
-    return INVALID_VECTOR
+    return this * (1.0 / scalar)
   }
 
   operator fun times(v: Vector2D): Double {
-    return INVALID_DOUBLE
+    return this.dx * v.dx + this.dy * v.dy
   }
 
   operator fun plus(v: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    return Vector2D(this.dx + v.dx, this.dy + v.dy)
   }
 
   operator fun plus(p: Point2D): Point2D {
-    return INVALID_POINT
+    return Point2D(this.dx + p.x, this.dy + p.y)
   }
 
   operator fun unaryMinus(): Vector2D {
-    return INVALID_VECTOR
+    return this * (-1.0)
   }
 
   operator fun minus(v: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    return this + (-v)
   }
 
   fun scalarProject(target: Vector2D): Double {
-    return INVALID_DOUBLE
+    return this * target / target.magnitude
   }
 
   fun vectorProject(target: Vector2D): Vector2D {
-    return INVALID_VECTOR
+    return this.scalarProject(target) * target.unit
+  }
+
+  companion object {
+    private const val PI_IN_DEGREES = 180
   }
 }
 
 operator fun Double.times(v: Vector2D): Vector2D {
-  return INVALID_VECTOR
+  return v * this
 }
