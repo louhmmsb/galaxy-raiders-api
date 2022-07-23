@@ -35,6 +35,9 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
   var missiles: List<Missile> = emptyList()
     private set
 
+  var explosions: List<Explosion> = emptyList()
+    private set
+
   val spaceObjects: List<SpaceObject>
     get() = listOf(ship) + asteroids + missiles
 
@@ -44,6 +47,13 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
 
   fun generateMissile() {
     missiles += createMissile()
+  }
+
+  fun generateExplosion(place: Point2D, radius: Double) {
+    explosions += Explosion(
+      initialPosition = place,
+      radius = radius
+    )
   }
 
   private fun initializeShip(): SpaceShip {
