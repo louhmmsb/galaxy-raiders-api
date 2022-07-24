@@ -83,6 +83,12 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     }
   }
 
+  fun trimExplosions() {
+    this.explosions = this.explosions.filter {
+      it.isTriggered()
+    }
+  }
+
   private fun initializeShip(): SpaceShip {
     return SpaceShip(
       initialPosition = standardShipPosition(),
