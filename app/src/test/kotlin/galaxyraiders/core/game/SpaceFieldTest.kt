@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -29,13 +30,23 @@ class SpaceFieldTest {
   )
 
   @Test
-  fun `it has its parameters initialized correctly `() {
+  fun `it has its parameters initialized correctly`() {
     assertAll(
       "SpaceField should initialize all initial parameters correctly",
       { assertNotNull(spaceField) },
       { assertEquals(12, spaceField.width) },
       { assertEquals(8, spaceField.height) },
       { assertEquals(generator, spaceField.generator) },
+    )
+  }
+
+  @Test
+  fun `it defines its boundaries`() {
+    assertAll(
+      "SpaceField should initialize all initial parameters correctly",
+      { assertNotNull(spaceField) },
+      { assertEquals(0.0..12.0, spaceField.boundaryX) },
+      { assertEquals(0.0..8.0, spaceField.boundaryY) },
     )
   }
 
@@ -70,20 +81,140 @@ class SpaceFieldTest {
   }
 
   @Test
-  fun `it has a list of objects with ship, asteroids and missiles`() {
+  fun `it has a list of objects with ship, missiles and asteroids`() {
     val ship = spaceField.ship
-
-    spaceField.generateAsteroid()
-    val asteroid = spaceField.asteroids.last()
 
     spaceField.generateMissile()
     val missile = spaceField.missiles.last()
 
+    spaceField.generateAsteroid()
+    val asteroid = spaceField.asteroids.last()
+
     val expectedSpaceObjects = listOf<SpaceObject>(
-      ship, asteroid, missile
+      ship, missile, asteroid
     )
 
     assertEquals(expectedSpaceObjects, spaceField.spaceObjects)
+  }
+
+  @Test
+  fun `it can move its ship`() {
+    val ship = spaceField.ship
+    repeat(2) { ship.boostRight() }
+
+    val expectedShipPosition = ship.center + ship.velocity
+
+    spaceField.moveShip()
+
+    assertEquals(expectedShipPosition, ship.center)
+  }
+
+  @Test
+  fun `it does not move the ship outside its boundaries upward`() {
+    val ship = spaceField.ship
+    repeat(10) { ship.boostUp() }
+
+    val expectedShipPosition = Point2D(
+      x = ship.center.x,
+      y = spaceField.boundaryY.endInclusive,
+    )
+
+    val distanceToTopBorder = spaceField.boundaryY.endInclusive - ship.center.y
+
+    val repetitionsToGetOutOfMap = Math.ceil(
+      distanceToTopBorder / Math.abs(ship.velocity.dy)
+    ).toInt()
+
+    repeat(repetitionsToGetOutOfMap) { spaceField.moveShip() }
+
+    assertEquals(expectedShipPosition, ship.center)
+  }
+
+  @Test
+  fun `it does not move the ship outside its boundaries downward`() {
+    val ship = spaceField.ship
+    repeat(10) { ship.boostDown() }
+
+    val expectedShipPosition = Point2D(
+      x = ship.center.x,
+      y = spaceField.boundaryY.start,
+    )
+
+    val distanceToBottomBorder = ship.center.y - spaceField.boundaryY.start
+
+    val repetitionsToGetOutOfMap = Math.ceil(
+      distanceToBottomBorder / Math.abs(ship.velocity.dy)
+    ).toInt()
+
+    repeat(repetitionsToGetOutOfMap) { spaceField.moveShip() }
+
+    assertEquals(expectedShipPosition, ship.center)
+  }
+
+  @Test
+  fun `it does not move the ship outside its boundaries rightward`() {
+    val ship = spaceField.ship
+    repeat(10) { ship.boostRight() }
+
+    val expectedShipPosition = Point2D(
+      x = spaceField.boundaryX.endInclusive,
+      y = ship.center.y,
+    )
+
+    val distanceToRightBorder = spaceField.boundaryX.endInclusive - ship.center.x
+
+    val repetitionsToGetOutOfMap = Math.ceil(
+      distanceToRightBorder / Math.abs(ship.velocity.dx)
+    ).toInt()
+
+    repeat(repetitionsToGetOutOfMap) { spaceField.moveShip() }
+
+    assertEquals(expectedShipPosition, ship.center)
+  }
+
+  @Test
+  fun `it does not move the ship outside its boundaries leftward`() {
+    val ship = spaceField.ship
+    repeat(10) { ship.boostLeft() }
+
+    val expectedShipPosition = Point2D(
+      x = spaceField.boundaryX.start,
+      y = ship.center.y,
+    )
+
+    val distanceToLeftBorder = ship.center.x - spaceField.boundaryX.start
+
+    val repetitionsToGetOutOfMap = Math.ceil(
+      distanceToLeftBorder / Math.abs(ship.velocity.dx)
+    ).toInt()
+
+    repeat(repetitionsToGetOutOfMap) { spaceField.moveShip() }
+
+    assertEquals(expectedShipPosition, ship.center)
+  }
+
+  @Test
+  fun `it can move its missiles`() {
+    spaceField.generateMissile()
+
+    val missile = spaceField.missiles.last()
+    val expectedMissilePosition = missile.center + missile.velocity
+
+    spaceField.moveMissiles()
+
+    assertEquals(expectedMissilePosition, missile.center)
+  }
+
+  @Test
+  fun `it can move its asteroids`() {
+    spaceField.generateAsteroid()
+
+    val asteroid = spaceField.asteroids.last()
+    val expectedAsteroidPosition = asteroid.center + asteroid.velocity
+
+    spaceField.moveAsteroids()
+
+    assertEquals(expectedAsteroidPosition, asteroid.center)
   }
 
   @Test
@@ -182,6 +313,68 @@ class SpaceFieldTest {
       { assertTrue(asteroid.mass >= 500) },
       { assertTrue(asteroid.mass <= 1000) },
     )
+  }
+
+  @Test
+  fun `it can remove missiles outside its boundary`() {
+    spaceField.generateMissile()
+
+    val missile = spaceField.missiles.last()
+
+    val distanceToTopBorder = spaceField.boundaryY.endInclusive - missile.center.y
+    val repetitionsToGetOutSpaceField = Math.ceil(
+      distanceToTopBorder / Math.abs(missile.velocity.dy)
+    ).toInt()
+
+    repeat(repetitionsToGetOutSpaceField) { missile.move() }
+
+    spaceField.trimMissiles()
+
+    assertEquals(-1, spaceField.missiles.indexOf(missile))
+  }
+
+  @Test
+  fun `it does not remove missiles inside its boundary`() {
+    spaceField.generateMissile()
+
+    val missile = spaceField.missiles.last()
+
+    missile.move()
+
+    spaceField.trimMissiles()
+
+    assertNotEquals(-1, spaceField.missiles.indexOf(missile))
+  }
+
+  @Test
+  fun `it can remove asteroids outside its boundary`() {
+    spaceField.generateAsteroid()
+
+    val asteroid = spaceField.asteroids.last()
+
+    val distanceToBottomBorder = asteroid.center.y - spaceField.boundaryY.start
+    val repetitionsToGetOutSpaceField = Math.ceil(
+      distanceToBottomBorder / Math.abs(asteroid.velocity.dy)
+    ).toInt()
+
+    repeat(repetitionsToGetOutSpaceField) { asteroid.move() }
+
+    spaceField.trimAsteroids()
+
+    assertEquals(-1, spaceField.asteroids.indexOf(asteroid))
+  }
+
+  @Test
+  fun `it does not remove asteroids inside its boundary`() {
+    spaceField.generateAsteroid()
+
+    val asteroid = spaceField.asteroids.last()
+
+    asteroid.move()
+
+    spaceField.trimAsteroids()
+
+    assertNotEquals(-1, spaceField.asteroids.indexOf(asteroid))
   }
 
   private companion object {

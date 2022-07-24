@@ -32,4 +32,37 @@ class SpaceShip(
   fun boostRight() {
     this.velocity += Vector2D(dx = SpaceShipConfig.boost, dy = 0.0)
   }
+
+  fun move(
+    boundaryX: ClosedFloatingPointRange<Double>,
+    boundaryY: ClosedFloatingPointRange<Double>,
+  ) {
+    this.move()
+
+    if (insideBoundaries(boundaryX, boundaryY)) return
+
+    this.correctPosition(boundaryX, boundaryY)
+    this.zeroOutSpeed()
+  }
+
+  private fun insideBoundaries(
+    boundaryX: ClosedFloatingPointRange<Double>,
+    boundaryY: ClosedFloatingPointRange<Double>,
+  ): Boolean {
+    return boundaryX.contains(this.center.x) && boundaryY.contains(this.center.y)
+  }
+
+  private fun correctPosition(
+    boundaryX: ClosedFloatingPointRange<Double>,
+    boundaryY: ClosedFloatingPointRange<Double>,
+  ) {
+    this.center = Point2D(
+      x = this.center.x.coerceIn(boundaryX),
+      y = this.center.y.coerceIn(boundaryY),
+    )
+  }
+
+  private fun zeroOutSpeed() {
+    this.velocity = Vector2D(dx = 0.0, dy = 0.0)
+  }
 }

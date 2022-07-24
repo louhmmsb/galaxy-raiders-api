@@ -27,6 +27,9 @@ object SpaceFieldConfig {
 
 @Suppress("TooManyFunctions")
 data class SpaceField(val width: Int, val height: Int, val generator: RandomGenerator) {
+  val boundaryX = 0.0..width.toDouble()
+  val boundaryY = 0.0..height.toDouble()
+
   val ship = initializeShip()
 
   var asteroids: List<Asteroid> = emptyList()
@@ -39,7 +42,7 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
     private set
 
   val spaceObjects: List<SpaceObject>
-    get() = listOf(ship) + asteroids + missiles
+    get() = listOf(ship) + missiles + asteroids
 
   fun generateAsteroid() {
     asteroids += createAsteroidWithRandomProperties()
@@ -54,6 +57,30 @@ data class SpaceField(val width: Int, val height: Int, val generator: RandomGene
       initialPosition = place,
       radius = radius
     )
+  }
+
+  fun moveShip() {
+    this.ship.move(boundaryX, boundaryY)
+  }
+
+  fun moveMissiles() {
+    this.missiles.forEach { it.move() }
+  }
+
+  fun moveAsteroids() {
+    this.asteroids.forEach { it.move() }
+  }
+
+  fun trimMissiles() {
+    this.missiles = this.missiles.filter {
+      it.inBoundaries(this.boundaryX, this.boundaryY)
+    }
+  }
+
+  fun trimAsteroids() {
+    this.asteroids = this.asteroids.filter {
+      it.inBoundaries(this.boundaryX, this.boundaryY)
+    }
   }
 
   private fun initializeShip(): SpaceShip {

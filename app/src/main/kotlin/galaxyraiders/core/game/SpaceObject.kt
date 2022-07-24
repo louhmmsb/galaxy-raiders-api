@@ -16,4 +16,11 @@ open class SpaceObject(
   override fun toString(): String {
     return "${this.type} at ${this.center}"
   }
+
+  fun inBoundaries(
+    boundaryX: ClosedFloatingPointRange<Double>,
+    boundaryY: ClosedFloatingPointRange<Double>,
+  ): Boolean {
+    return boundaryX.contains(this.center.x) && boundaryY.contains(this.center.y)
+  }
 }

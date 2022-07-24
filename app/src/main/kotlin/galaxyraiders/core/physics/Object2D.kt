@@ -7,7 +7,7 @@ open class Object2D(
   val mass: Double
 ) {
   var center: Point2D = initialPosition
-    private set
+    protected set
 
   var velocity: Vector2D = initialVelocity
     protected set

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -37,5 +38,45 @@ class SpaceObjectTest {
   @Test
   fun `it shows its type when converted to string `() {
     assertTrue(so.toString().contains(so.type))
+  }
+
+  @Test
+  fun `it can determine if it is within boundaries `() {
+    val boundaryX = 0.0..2.0
+    val boundaryY = 0.0..2.0
+
+    assertTrue(so.inBoundaries(boundaryX, boundaryY))
+  }
+
+  @Test
+  fun `it can determine if it is outside top boundary `() {
+    val boundaryX = 0.0..2.0
+    val boundaryY = 0.0..(so.center.y - 0.1)
+
+    assertFalse(so.inBoundaries(boundaryX, boundaryY))
+  }
+
+  @Test
+  fun `it can determine if it is outside bottom boundary `() {
+    val boundaryX = 0.0..2.0
+    val boundaryY = (so.center.y + 0.1)..2.0
+
+    assertFalse(so.inBoundaries(boundaryX, boundaryY))
+  }
+
+  @Test
+  fun `it can determine if it is outside right boundary `() {
+    val boundaryX = 0.0..(so.center.y - 0.1)
+    val boundaryY = 0.0..2.0
+
+    assertFalse(so.inBoundaries(boundaryX, boundaryY))
+  }
+
+  @Test
+  fun `it can determine if it is outside left boundary `() {
+    val boundaryX = (so.center.y + 0.1)..2.0
+    val boundaryY = 0.0..2.0
+
+    assertFalse(so.inBoundaries(boundaryX, boundaryY))
   }
 }
