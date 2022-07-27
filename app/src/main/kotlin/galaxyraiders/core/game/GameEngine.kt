@@ -89,10 +89,10 @@ class GameEngine(
     this.field.spaceObjects.forEachPair {
         (first, second) ->
       if (first.impacts(second)) {
-        if (first.type == "Asteroid" && second.type == "Missile") {
+        if (first.type == "Missile" && second.type == "Asteroid") {
           this.field.generateExplosion(
-            place = first.center,
-            radius = first.radius
+            place = second.center,
+            radius = second.radius
           )
         }
         first.collideWith(second, GameEngineConfig.coefficientRestitution)
